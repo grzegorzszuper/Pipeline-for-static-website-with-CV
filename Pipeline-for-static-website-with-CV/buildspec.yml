@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin 746669194945.dkr.ecr.eu-west-3.amazonaws.com
+      - export IMAGE_URI=746669194945.dkr.ecr.eu-west-3.amazonaws.com/cv-website:latest
+  build:
+    commands:
+      - echo Building the Docker image...
+      - cd "Pipeline-for-static-website-with-CV"
+      - ls -la
+      - docker build -t $IMAGE_URI .
+  post_build:
+    commands:
+      - echo Pushing the Docker image...
+      - docker push $IMAGE_URI
+      - echo Writing image definitions...
+      - printf '[{"name":"cv-container","imageUri":"%s"}]' $IMAGE_URI > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+  base-directory: Pipeline-for-static-website-with-CV
